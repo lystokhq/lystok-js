@@ -22,6 +22,21 @@ function fakeFetch(...answers) {
   return fn
 }
 
+/**
+ * A request that never answers until it is aborted. A real one holds a socket that keeps Node
+ * running; this one holds a timer, since AbortSignal.timeout alone does not (Node 20 and 22 end the
+ * test with the promise still pending).
+ */
+function hang(init) {
+  return new Promise((_, reject) => {
+    const keepAlive = setInterval(() => {}, 1000)
+    init.signal.addEventListener('abort', () => {
+      clearInterval(keepAlive)
+      reject(init.signal.reason)
+    })
+  })
+}
+
 const client = (fetch, options = {}) => new Lystok('lk_live_test', { fetch, baseUrl: 'https://api.example/', ...options })
 
 describe('client', () => {
@@ -137,14 +152,12 @@ describe('retries', () => {
   })
 
   it('stops a slow request at the timeout', async () => {
-    const hang = init => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason)))
     const err = await client(fakeFetch(hang), { timeout: 50, maxRetries: 0 }).emails.get('e1').catch(e => e)
     assert.equal(err.code, 'timeout')
   })
 
   it('does not try again when you cancel', async () => {
     const controller = new AbortController()
-    const hang = init => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason)))
     const fetch = fakeFetch(hang, hang)
     const pending = client(fetch).emails.get('e1', { signal: controller.signal })
     controller.abort()
