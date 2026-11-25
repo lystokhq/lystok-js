@@ -40,20 +40,23 @@ function hang(init) {
 const client = (fetch, options = {}) => new Lystok('lk_live_test', { fetch, baseUrl: 'https://api.example/', ...options })
 
 describe('client', () => {
-  it('needs an API key', () => {
+  it('needs an API key, and never reads one from the environment', async () => {
     const saved = process.env.LYSTOK_API_KEY
-    delete process.env.LYSTOK_API_KEY
-    assert.throws(() => new Lystok(), /Missing API key/)
     process.env.LYSTOK_API_KEY = 'lk_live_from_env'
-    const fetch = fakeFetch({ body: { id: 'e1' } })
-    return new Lystok(undefined, { fetch }).emails.get('e1').then(() => {
-      assert.equal(fetch.calls[0].headers.Authorization, 'Bearer lk_live_from_env')
-      assert.equal(fetch.calls[0].url, 'https://api.lystok.com/v1/emails/e1')
+    try {
+      for (const key of [undefined, '', '  '])
+        assert.throws(() => new Lystok(key), /Missing API key/)
+    }
+    finally {
       if (saved === undefined)
         delete process.env.LYSTOK_API_KEY
       else
         process.env.LYSTOK_API_KEY = saved
-    })
+    }
+    const fetch = fakeFetch({ body: { id: 'e1' } })
+    await new Lystok('lk_live_given', { fetch }).emails.get('e1')
+    assert.equal(fetch.calls[0].headers.Authorization, 'Bearer lk_live_given')
+    assert.equal(fetch.calls[0].url, 'https://api.lystok.com/v1/emails/e1')
   })
 
   it('sends an email with the key, JSON, a version and a made-up idempotency key', async () => {

@@ -53,16 +53,11 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function envApiKey(): string | undefined {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-  return env?.LYSTOK_API_KEY
-}
-
 /**
  * The Lystok API client.
  *
  * ```ts
- * const lystok = new Lystok(process.env.LYSTOK_API_KEY)
+ * const lystok = new Lystok(process.env.LYSTOK_API_KEY!) // from wherever you keep it
  * const { id } = await lystok.emails.send({ from: 'Shop <orders@shop.example>', to: 'olena@example.com', subject: 'Hi', html: '<p>Hi!</p>' })
  * ```
  */
@@ -77,12 +72,11 @@ export class Lystok {
   readonly #maxRetries: number
   readonly #fetch: typeof fetch
 
-  /** @param apiKey An API key from Settings → For developers; `LYSTOK_API_KEY` when not given. */
-  constructor(apiKey?: string, options: LystokOptions = {}) {
-    const key = apiKey ?? envApiKey()
-    if (!key)
-      throw new Error('Missing API key: pass it to new Lystok(\'lk_live_…\') or set LYSTOK_API_KEY')
-    this.#apiKey = key
+  /** @param apiKey An API key from Settings → For developers (`lk_live_…`). */
+  constructor(apiKey: string, options: LystokOptions = {}) {
+    if (typeof apiKey !== 'string' || !apiKey.trim())
+      throw new Error('Missing API key: pass your Lystok API key (lk_live_…) to new Lystok()')
+    this.#apiKey = apiKey
     this.#baseUrl = (options.baseUrl ?? 'https://api.lystok.com').replace(/\/+$/, '')
     this.#timeout = options.timeout ?? 30_000
     this.#maxRetries = Math.max(0, options.maxRetries ?? 2)

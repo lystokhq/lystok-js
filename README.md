@@ -15,7 +15,7 @@ Create an API key in Lystok → Settings → For developers, and verify your sen
 ```ts
 import { Lystok } from 'lystok'
 
-const lystok = new Lystok(process.env.LYSTOK_API_KEY)
+const lystok = new Lystok(process.env.LYSTOK_API_KEY!)
 
 const { id } = await lystok.emails.send({
   from: 'Shop <orders@shop.example>',
@@ -25,8 +25,8 @@ const { id } = await lystok.emails.send({
 })
 ```
 
-`new Lystok()` without a key reads `LYSTOK_API_KEY`. Keys belong on your server: never put one in
-a browser or a mobile app.
+Pass the key from wherever you keep it: any environment variable name, a secrets manager or your
+config. Keys belong on your server: never put one in a browser or a mobile app.
 
 ### With a template
 
