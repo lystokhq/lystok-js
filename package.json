@@ -1,0 +1,36 @@
+{
+  "name": "lystok",
+  "version": "0.1.0",
+  "description": "Official Node.js / TypeScript library for the Lystok email API",
+  "license": "MIT",
+  "author": "Lystok",
+  "homepage": "https://github.com/lystokhq/lystok-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lystokhq/lystok-js.git"
+  },
+  "bugs": "https://github.com/lystokhq/lystok-js/issues",
+  "keywords": ["lystok", "email", "transactional email", "api", "sdk", "webhooks"],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test",
+    "prepublishOnly": "npm test"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
